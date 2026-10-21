@@ -347,6 +347,16 @@ def classify_with_cv(X, y, n_folds=5, seed=42):
     return np.mean(fold_scores), fold_scores
 
 
+def format_p(p_value, n_permutations, relation=False):
+    """Format a permutation p-value; 0 of n permutations means p < 1/n.
+
+    With relation=True the text reads after "p", e.g. "= 0.058".
+    """
+    if p_value == 0:
+        return f"< {1 / n_permutations:.3g}"
+    return f"= {p_value:.3f}" if relation else f"{p_value:.3f}"
+
+
 def run_permutation_test(residuals, y, n_permutations=1000, seed=42, n_folds=5):
     """
     Run permutation test on residualized embeddings.
@@ -395,7 +405,7 @@ def run_permutation_test(residuals, y, n_permutations=1000, seed=42, n_folds=5):
         'p_value': p_value,
         'n_permutations': n_permutations,
         'null_distribution': null_distribution.tolist(),
-        'within_null_ci': null_ci_low <= observed_acc <= null_ci_high
+        'within_null_ci': bool(null_ci_low <= observed_acc <= null_ci_high)
     }
 
 
@@ -464,11 +474,11 @@ def verify_from_published(language, embedding_model):
     print(f"    95% CI:   [{ci_low:.2%}, {ci_high:.2%}]")
     print(f"    chance:   {chance:.2%}")
     print(f"\n  Observed residual: {observed:.2%}   (from {src})")
-    print(f"    p-value:            {p_value:.3f}")
+    print(f"    p-value:            {format_p(p_value, len(null))}")
     print(f"    within null 95% CI: {bool(ci_low <= observed <= ci_high)}")
     verdict = ("NOT significantly above chance" if p_value >= 0.05
                else "significantly above chance")
-    print(f"\n  Conclusion: residual is {verdict} (p = {p_value:.3f})")
+    print(f"\n  Conclusion: residual is {verdict} (p {format_p(p_value, len(null), relation=True)})")
     print("\n  Re-run the permutations from scratch with --recompute "
           "(~3.5 h Russian, ~7 h Italian).")
     return 0
@@ -524,7 +534,8 @@ def main():
         from run_italian_extended import load_italian_dataset
         data = load_italian_dataset(
             n_per_author=N_PER_AUTHOR,
-            seed=args.seed
+            seed=args.seed,
+            embedding_model=args.embedding_model
         )
         tier_order = ['tier1', 'tier2', 'tier3', 'tier5', 'tier6']  # No tier4 (prosody)
         use_prosody = False
@@ -584,7 +595,7 @@ def main():
     print(f"    Mean:   {results['null_mean']:.4f} ({results['null_mean']:.2%})")
     print(f"    Std:    {results['null_std']:.4f}")
     print(f"    95% CI: [{results['null_ci_95_low']:.4f}, {results['null_ci_95_high']:.4f}]")
-    print(f"\n  p-value: {results['p_value']:.4f}")
+    print(f"\n  p-value: {format_p(results['p_value'], results['n_permutations'])}")
     print(f"  Within null 95% CI: {results['within_null_ci']}")
 
     # Significance interpretation
@@ -608,7 +619,7 @@ def main():
         print(f"  ✓ LLM embeddings encode information fully captured by the 6-tier features.")
     else:
         print(f"  ✗ The residual accuracy ({results['observed_accuracy']:.2%}) IS significantly")
-        print(f"    above the null distribution (p = {results['p_value']:.4f}).")
+        print(f"    above the null distribution (p {format_p(results['p_value'], results['n_permutations'], relation=True)}).")
         print(f"  ✗ This means embeddings still encode information beyond our features.")
         if args.language == 'italian':
             print(f"  ✗ For Italian, this is expected due to 700 years of temporal/dialect variation.")

@@ -151,8 +151,10 @@ def run_multiclass_probe(embeddings, labels, name, class_names, seed=42, min_per
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Run cross-validation with multiclass
-    clf = LogisticRegression(max_iter=2000, C=1.0, random_state=seed, multi_class='multinomial')
+    # Run cross-validation with multiclass. lbfgs fits a multinomial model for
+    # >2 classes by default; the multi_class argument was removed in
+    # scikit-learn 1.8 and passing it there raises TypeError.
+    clf = LogisticRegression(max_iter=2000, C=1.0, random_state=seed)
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=seed)
     scores = cross_val_score(clf, X_scaled, y, cv=cv, scoring='accuracy')
 
