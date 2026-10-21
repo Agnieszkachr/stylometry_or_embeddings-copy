@@ -173,6 +173,10 @@ def compute_md5(filepath: Path) -> str:
 def download_file(url: str, dest: Path, expected_size_mb: int = None) -> bool:
     """Download a file with progress indicator."""
     dest.parent.mkdir(parents=True, exist_ok=True)
+    # Download next to the destination and move it into place only once the
+    # transfer completes, so an interrupted download never leaves a truncated
+    # file that later runs would mistake for an existing one.
+    tmp = dest.with_name(dest.name + ".part")
 
     try:
         print(f"  Downloading: {dest.name}", end="", flush=True)
@@ -180,13 +184,18 @@ def download_file(url: str, dest: Path, expected_size_mb: int = None) -> bool:
             print(f" ({expected_size_mb} MB)", end="", flush=True)
         print(" ... ", end="", flush=True)
 
-        urllib.request.urlretrieve(url, dest)
+        urllib.request.urlretrieve(url, tmp)
+        os.replace(tmp, dest)
         print("done")
         return True
 
     except Exception as e:
         print(f"FAILED: {e}")
         return False
+
+    finally:
+        if tmp.exists():
+            tmp.unlink()
 
 
 def verify_file(filepath: Path, expected_md5: str = None) -> bool:
@@ -236,11 +245,13 @@ def main():
         "--italian", action="store_true",
         help="Download Italian corpus only"
     )
-    parser.add_argument(
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument(
         "--minimal", action="store_true",
-        help="Download only required files (Gemini embeddings + poems)"
+        help="Download only required files (Gemini embeddings + poems); "
+             "this is also the default"
     )
-    parser.add_argument(
+    selection.add_argument(
         "--all", action="store_true",
         help="Download all files including optional embeddings"
     )
@@ -268,14 +279,17 @@ def main():
         print("\nFor reviewers: Contact the authors for the Zenodo access link.")
         return 1
 
-    # Filter files based on arguments
+    # Filter files based on arguments. --russian and --italian together mean
+    # both corpora, the same as giving neither.
+    corpora = [c for c in ("russian", "italian") if getattr(args, c)]
+    if not corpora:
+        corpora = ["russian", "italian"]
+
     files_to_download = {}
 
     for filepath, info in FILES.items():
         # Filter by corpus
-        if args.russian and not filepath.startswith("data/russian"):
-            continue
-        if args.italian and not filepath.startswith("data/italian"):
+        if not any(filepath.startswith(f"data/{c}/") for c in corpora):
             continue
 
         # Filter by required/optional
@@ -317,11 +331,13 @@ def main():
             print("Nothing to download; checking the files that are here.")
             return verify_all(files_to_download, base_dir)
 
-    # Download missing files
-    print(f"\n[Downloading {len(missing)} files...]")
+    # Download missing files; --force re-fetches the ones already on disk too,
+    # which is how a corrupt file reported by verify_all() gets replaced.
+    to_fetch = list(files_to_download) if args.force else missing
+    print(f"\n[Downloading {len(to_fetch)} files...]")
 
     failed = []
-    for filepath in missing:
+    for filepath in to_fetch:
         info = files_to_download[filepath]
         full_path = base_dir / filepath
 

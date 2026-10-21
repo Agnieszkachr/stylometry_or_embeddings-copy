@@ -311,7 +311,7 @@ def extract_tier3_grammar(poem: Dict) -> np.ndarray:
     """
     Extract Tier 3: Grammar features (100 features).
 
-    17 POS + 48 morph + 35 deprel = 100 features
+    17 POS + 49 morph + 34 deprel = 100 features
 
     Requires poem to have 'linguistic_features' field with:
     - pos_counts: dict like {'ADJ': 9, 'NOUN': 27, ...}
@@ -327,7 +327,7 @@ def extract_tier3_grammar(poem: Dict) -> np.ndarray:
     total_pos = sum(pos_counts.values()) or 1
     pos_features = [pos_counts.get(tag, 0) / total_pos for tag in POS_TAGS]
 
-    # Morphological features (48 features) - normalized counts
+    # Morphological features (49 features) - normalized counts
     feats = lf.get('feats', {})
     morph_features = []
     for morph_feat in MORPH_FEATURES:
@@ -340,7 +340,7 @@ def extract_tier3_grammar(poem: Dict) -> np.ndarray:
         else:
             morph_features.append(0.0)
 
-    # Dependency relations (35 features) - normalized
+    # Dependency relations (34 features) - normalized
     deprels = lf.get('deprels', {})
     total_deps = sum(deprels.values()) or 1
     dep_features = [deprels.get(rel, 0) / total_deps for rel in DEP_RELATIONS]
