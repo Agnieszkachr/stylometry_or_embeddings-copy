@@ -181,6 +181,10 @@ def main():
     parser.add_argument('--alpha', type=float, default=1.0,
                         help='Ridge alpha')
     args = parser.parse_args()
+    # 'qwen-8b' is the older spelling of 'qwen8b'; normalise it for both
+    # languages so the Russian loader finds embeddings_qwen8b.npy too.
+    args.embedding_model = {'qwen-8b': 'qwen8b'}.get(args.embedding_model,
+                                                     args.embedding_model)
 
     print("=" * 70)
     print("EXP8: Bidirectional Residualization Analysis (Fixed CV)")
@@ -360,7 +364,12 @@ def main():
         print(f"  Character patterns are harder to capture in embeddings")
 
     # Save results
-    model_suffix = f"_{embedding_model}" if args.language == 'russian' else ""
+    # The Italian Gemini run keeps its historical unsuffixed name (Table 10);
+    # every other model gets a suffix so it cannot overwrite that file.
+    if args.language == 'russian' or embedding_model != 'gemini':
+        model_suffix = f"_{embedding_model}"
+    else:
+        model_suffix = ""
     output_file = RESULTS_DIR / f"residualization_{args.language}{model_suffix}.json"
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=2, ensure_ascii=False)

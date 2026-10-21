@@ -31,7 +31,7 @@ warnings.filterwarnings('ignore')
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 # Italian function words
-ITALIAN_FUNCTION_WORDS = list(set([
+ITALIAN_FUNCTION_WORDS = sorted(set([
     # Personal pronouns
     'io', 'tu', 'lui', 'lei', 'noi', 'voi', 'loro', 'esso', 'essa',
     'mi', 'ti', 'ci', 'vi', 'si', 'lo', 'la', 'li', 'le', 'ne',

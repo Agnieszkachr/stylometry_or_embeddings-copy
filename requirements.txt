@@ -11,6 +11,14 @@ seaborn>=0.11.0
 # Utilities
 tqdm>=4.62.0
 
+# Optional: only for exp10_embedding_structure/run_ablation.py --regenerate,
+# which re-embeds texts through the paid Gemini API
+# google-genai
+# python-dotenv  # reads GEMINI_API_KEY from a .env file
+
+# Optional: to run the test suite (python -m pytest tests)
+# pytest
+
 # Optional: for tokenization analysis (not required for main experiments)
 # tiktoken>=0.4.0
 # transformers>=4.30.0

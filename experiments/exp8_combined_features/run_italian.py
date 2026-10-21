@@ -37,7 +37,7 @@ N_PER_AUTHOR = 200
 
 
 # Italian function words (from exp0_italian_stylometry_baseline)
-ITALIAN_FUNCTION_WORDS = list(set([
+ITALIAN_FUNCTION_WORDS = sorted(set([
     # Articles
     'il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno', 'una',
     # Prepositions

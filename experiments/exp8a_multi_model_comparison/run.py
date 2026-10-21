@@ -43,7 +43,7 @@ warnings.filterwarnings('ignore')
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 # Russian function words (for full stylometry baseline)
-RUSSIAN_FUNCTION_WORDS = list(set([
+RUSSIAN_FUNCTION_WORDS = sorted(set([
     'я', 'ты', 'он', 'она', 'оно', 'мы', 'вы', 'они',
     'мне', 'тебе', 'ему', 'ей', 'нам', 'вам', 'им',
     'меня', 'тебя', 'его', 'её', 'нас', 'вас', 'их',
