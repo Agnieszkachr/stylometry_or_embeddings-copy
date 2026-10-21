@@ -36,7 +36,7 @@ N_PER_AUTHOR = 200
 
 
 # Russian function words
-RUSSIAN_FUNCTION_WORDS = list(set([
+RUSSIAN_FUNCTION_WORDS = sorted(set([
     'я', 'ты', 'он', 'она', 'оно', 'мы', 'вы', 'они',
     'мне', 'тебе', 'ему', 'ей', 'нам', 'вам', 'им',
     'меня', 'тебя', 'его', 'её', 'нас', 'вас', 'их',
@@ -60,7 +60,7 @@ RUSSIAN_FUNCTION_WORDS = list(set([
 ]))
 
 # Italian function words
-ITALIAN_FUNCTION_WORDS = list(set([
+ITALIAN_FUNCTION_WORDS = sorted(set([
     'il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno', 'una',
     'di', 'a', 'da', 'in', 'con', 'su', 'per', 'tra', 'fra',
     'del', 'dello', 'della', 'dei', 'degli', 'delle',
