@@ -224,6 +224,14 @@ def main():
         p['emb_advantage'] = p['emb_only_correct'] - p['stylo_only_correct']
         # Positive = embedding better, Negative = stylometry better
 
+    overall = {
+        'emb_accuracy': float(np.mean([p['emb_accuracy'] for p in poem_stats])),
+        'stylo_accuracy': float(np.mean([p['stylo_accuracy'] for p in poem_stats])),
+    }
+    print(f"\n  Overall binary accuracy (mean over poems): "
+          f"embeddings {overall['emb_accuracy']:.1%}, "
+          f"stylometry {overall['stylo_accuracy']:.1%}")
+
     print(f"\n[Analyzing results...]")
 
     # ========================================================================
@@ -380,6 +388,7 @@ def main():
             'n_pairs': n_pairs,
             'embedding_model': args.embedding_model
         },
+        'overall': overall,
         'correlations': {
             'embedding_length_corr': emb_corr,
             'embedding_length_pvalue': emb_p,

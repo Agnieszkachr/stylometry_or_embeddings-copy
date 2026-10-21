@@ -34,8 +34,11 @@ def load_dataset(
 
     Args:
         language: 'russian' or 'italian'
-        embedding_model: 'gemini' or 'qwen8b'
-        include_poems: If True, load full poem texts (Italian only)
+        embedding_model: 'gemini' (default download) or, after
+            'download_data.py --all', 'openai', 'voyage', 'qwen8b',
+            'e5-large', and 'bge-m3' (Russian only)
+        include_poems: If True, load full poem texts and attach the
+            linguistic features (and prosody for Russian) to each poem
 
     Returns:
         dict with:
@@ -44,7 +47,7 @@ def load_dataset(
             - author_list: list of author names
             - author_to_idx: dict mapping author name to index
             - metadata: dict with dataset parameters
-            - poems: list of poem dicts (only if include_poems=True and Italian)
+            - poems: list of poem dicts (only if include_poems=True)
             - prosody: dict of prosodic features (Russian only)
     """
     lang_dir = DATA_DIR / language
@@ -68,7 +71,7 @@ def load_dataset(
         raise FileNotFoundError(
             f"Embeddings not found: {emb_file}\n"
             f"Downloaded for {language}: {', '.join(available) if available else 'none'}\n"
-            f"Only Gemini is fetched by 'download_data.py --minimal'. "
+            f"The default 'python download_data.py' fetches only Gemini. "
             f"To get the other models:\n"
             f"    python download_data.py --all"
         )
@@ -134,7 +137,7 @@ def load_dataset(
                 raise FileNotFoundError(
                     f"{ling_file} not found, but Tier 3 (grammar) features are "
                     f"derived from it; without it every Tier 3 feature would be "
-                    f"silently zero. Run: python download_data.py --minimal"
+                    f"silently zero. Run: python download_data.py"
                 )
 
             ling_data = result['linguistic_features']
@@ -163,6 +166,12 @@ def load_dataset(
                     poem['linguistic_features'] = ling
 
             result['poems'] = poems
+        else:
+            # Callers index result['poems'] straight away; without this they
+            # fail later with a bare KeyError: 'poems'.
+            raise FileNotFoundError(
+                f"{poems_file} not found. Run: python download_data.py"
+            )
 
     return result
 

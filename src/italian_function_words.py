@@ -17,7 +17,7 @@ This comprehensive list includes:
 - Auxiliary verbs (common conjugations)
 """
 
-ITALIAN_FUNCTION_WORDS = list(set([
+ITALIAN_FUNCTION_WORDS = sorted(set([
     # Personal pronouns
     'io', 'tu', 'lui', 'lei', 'noi', 'voi', 'loro', 'esso', 'essa',
     'mi', 'ti', 'ci', 'vi', 'si', 'lo', 'la', 'li', 'le', 'ne',

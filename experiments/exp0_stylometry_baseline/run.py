@@ -51,7 +51,7 @@ N_PER_AUTHOR = 200
 
 
 # Russian function words (common grammatical words) - deduplicated
-RUSSIAN_FUNCTION_WORDS = list(set([
+RUSSIAN_FUNCTION_WORDS = sorted(set([
     # Pronouns
     'я', 'ты', 'он', 'она', 'оно', 'мы', 'вы', 'они',
     'мне', 'тебе', 'ему', 'ей', 'нам', 'вам', 'им',

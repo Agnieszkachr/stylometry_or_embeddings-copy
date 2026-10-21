@@ -226,13 +226,25 @@ def main():
             else:
                 poem_stats[global_idx]['both_wrong'] += 1
 
-    # Calculate rates
-    n_comparisons = n_authors - 1
+    # Calculate rates. A poem is compared once per processed pair it belongs
+    # to: n_authors - 1 times on a full run, fewer with --max-pairs. Poems in
+    # no processed pair carry no information and are left out.
+    for p in poem_stats:
+        p['n_comparisons'] = p['emb_correct'] + p['emb_wrong']
+    poem_stats = [p for p in poem_stats if p['n_comparisons'] > 0]
 
     for p in poem_stats:
-        p['emb_accuracy'] = p['emb_correct'] / n_comparisons
-        p['stylo_accuracy'] = p['stylo_correct'] / n_comparisons
+        p['emb_accuracy'] = p['emb_correct'] / p['n_comparisons']
+        p['stylo_accuracy'] = p['stylo_correct'] / p['n_comparisons']
         p['emb_advantage'] = p['emb_only_correct'] - p['stylo_only_correct']
+
+    overall = {
+        'emb_accuracy': float(np.mean([p['emb_accuracy'] for p in poem_stats])),
+        'stylo_accuracy': float(np.mean([p['stylo_accuracy'] for p in poem_stats])),
+    }
+    print(f"\n  Overall binary accuracy (mean over poems): "
+          f"embeddings {overall['emb_accuracy']:.1%}, "
+          f"stylometry {overall['stylo_accuracy']:.1%}")
 
     print(f"\n[Analyzing results...]")
 
@@ -295,7 +307,7 @@ def main():
         n_poems = len(bin_poems)
         avg_emb_err = 1 - np.mean([p['emb_accuracy'] for p in bin_poems])
         avg_stylo_err = 1 - np.mean([p['stylo_accuracy'] for p in bin_poems])
-        avg_both_err = np.mean([p['both_wrong'] / n_comparisons for p in bin_poems])
+        avg_both_err = np.mean([p['both_wrong'] / p['n_comparisons'] for p in bin_poems])
 
         length_analysis.append({
             'label': label,
@@ -385,6 +397,7 @@ def main():
             'n_authors': n_authors,
             'n_pairs': n_pairs
         },
+        'overall': overall,
         'correlations': {
             'embedding_length_corr': emb_corr,
             'embedding_length_pvalue': emb_p,
@@ -410,13 +423,16 @@ def main():
         } for p in stylo_distinctive]
     }
 
-    output_file = RESULTS_DIR / f"method_differences_italian.json"
+    # A --max-pairs test run must not overwrite the full-run file that
+    # plot_binary_error_by_length.py reads.
+    suffix = f"_first{args.max_pairs}pairs" if args.max_pairs else ""
+    output_file = RESULTS_DIR / f"method_differences_italian{suffix}.json"
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
     print(f"\nResults saved to: {output_file}")
 
     # Save distinctive poems to readable files
-    emb_file = RESULTS_DIR / f"distinctive_for_embeddings_italian.txt"
+    emb_file = RESULTS_DIR / f"distinctive_for_embeddings_italian{suffix}.txt"
     with open(emb_file, 'w', encoding='utf-8') as f:
         f.write("=" * 70 + "\n")
         f.write("POEMS DISTINCTIVE FOR EMBEDDINGS (ITALIAN)\n")
@@ -438,7 +454,7 @@ def main():
 
     print(f"Embedding-distinctive poems saved to: {emb_file}")
 
-    stylo_file = RESULTS_DIR / f"distinctive_for_stylometry_italian.txt"
+    stylo_file = RESULTS_DIR / f"distinctive_for_stylometry_italian{suffix}.txt"
     with open(stylo_file, 'w', encoding='utf-8') as f:
         f.write("=" * 70 + "\n")
         f.write("POEMS DISTINCTIVE FOR STYLOMETRY (ITALIAN)\n")

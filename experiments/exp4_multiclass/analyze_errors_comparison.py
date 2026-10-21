@@ -36,7 +36,7 @@ N_PER_AUTHOR = 200
 
 
 # Russian function words
-RUSSIAN_FUNCTION_WORDS = list(set([
+RUSSIAN_FUNCTION_WORDS = sorted(set([
     'я', 'ты', 'он', 'она', 'оно', 'мы', 'вы', 'они',
     'мне', 'тебе', 'ему', 'ей', 'нам', 'вам', 'им',
     'меня', 'тебя', 'его', 'её', 'нас', 'вас', 'их',
@@ -60,7 +60,7 @@ RUSSIAN_FUNCTION_WORDS = list(set([
 ]))
 
 # Italian function words
-ITALIAN_FUNCTION_WORDS = list(set([
+ITALIAN_FUNCTION_WORDS = sorted(set([
     'il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno', 'una',
     'di', 'a', 'da', 'in', 'con', 'su', 'per', 'tra', 'fra',
     'del', 'dello', 'della', 'dei', 'degli', 'delle',
@@ -549,7 +549,10 @@ def main():
         'error_overlap': overlap
     }
 
-    results_file = RESULTS_DIR / f"error_comparison_{args.language}.json"
+    # The Gemini run keeps its historical unsuffixed name (the published
+    # error overlap); other models get a suffix so they cannot overwrite it.
+    model_suffix = "" if args.embedding_model == 'gemini' else f"_{args.embedding_model}"
+    results_file = RESULTS_DIR / f"error_comparison_{args.language}{model_suffix}.json"
     with open(results_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=2, default=str)
     print(f"\nResults saved to: {results_file}")

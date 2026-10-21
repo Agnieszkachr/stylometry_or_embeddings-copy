@@ -9,10 +9,11 @@ Compare all 7 embedding models with stylometry:
 - Residualization analysis (unique signal in each)
 
 Stylometry feature set (--stylometry):
-  char3_func (default)  char 3-grams + function words. Matches the paper's
-                        Table "embeddings, stylometry, and their combination"
-                        and the published combined-comparison figures
-                        (Russian stylometry 59.2%, Gemini combined 71.3%).
+  char3_func (default)  char 3-grams + function words: the feature set of the
+                        paper's Table "embeddings, stylometry, and their
+                        combination" (which exp8 computes) and of the published
+                        combined-comparison figures (Russian stylometry 59.4%,
+                        Gemini combined 71.2%).
   full                  char 2-4 grams + word 1-2 grams + function words.
                         A broader baseline (Russian 62.2%); does NOT match
                         the paper's tables. Was the default Jan-Jun 2026.
@@ -43,7 +44,7 @@ warnings.filterwarnings('ignore')
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 # Russian function words (for full stylometry baseline)
-RUSSIAN_FUNCTION_WORDS = list(set([
+RUSSIAN_FUNCTION_WORDS = sorted(set([
     'я', 'ты', 'он', 'она', 'оно', 'мы', 'вы', 'они',
     'мне', 'тебе', 'ему', 'ей', 'нам', 'вам', 'им',
     'меня', 'тебя', 'его', 'её', 'нас', 'вас', 'их',

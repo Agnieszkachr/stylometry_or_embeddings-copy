@@ -37,13 +37,16 @@ pip install -r requirements.txt
 # Get the data from Zenodo (~251 MB) and verify it
 python download_data.py
 
-# Confirm the setup: both re-derive a published result from the shipped
-# artifacts, so they exercise the data and the code without recomputing
+# Confirm the setup: both re-derive a published result from result files
+# committed here, so they exercise the code and its dependencies without
+# recomputing (they do not read the Zenodo data; --verify checks that)
 python experiments/exp7_waterfall/run_permutation_test.py
 python experiments/exp10_embedding_structure/run_ablation.py
+python download_data.py --verify
 ```
 
-If those commands succeed, the installation is correct.
+If those commands succeed, the installation is correct. The unit tests run
+without the Zenodo data: `pip install pytest && python -m pytest tests`.
 
 Reproducing the paper in full is the next section. Expect roughly six hours
 end to end, most of it in two long runs (the Italian waterfall and the Italian
@@ -110,7 +113,20 @@ machine.
 
 Results are written to `experiments/<exp>/results/` and figures to `figures/`.
 Both are committed, so you can compare against the published values before
-running anything.
+running anything, with these exceptions:
+
+- not committed: `exp2_binary_pairs/results/method_differences_*.json`
+  (Table 11, Figure 4) and `exp7_waterfall/results/probe_discriminative_gemini.json`
+  (Table 6);
+- out of date: `exp7_waterfall/results/waterfall_extended_gemini.json` was
+  produced without Tier 3 features (its `after_tier3` stage leaves accuracy
+  unchanged, R² ≈ 0), so it gives 46.7% after T1–T4 where Table 5 has 40.0%;
+  `exp7_waterfall/results/waterfall_extended_qwen8b.json` gives a final
+  residual of 3.9% where Table 5 and Figure 6 have 3.8%;
+  and `exp8a_multi_model_comparison/results/multi_model_results*.json` hold
+  the older `--stylometry full` run (Russian: Gemini only). The committed
+  figures and the tables below are the published values; re-run the
+  corresponding scripts before regenerating Figures 1–3 or 5–6 from these files.
 
 ### Coverage at a glance
 
@@ -182,7 +198,7 @@ and reports which models were missing.
 python experiments/exp0_stylometry_baseline/run.py
 ```
 
-**Expected** (Russian; the script prints Italian too)
+**Expected** (Russian; this script has no Italian run)
 
 | Method | Accuracy |
 |--------|----------|
@@ -210,8 +226,8 @@ python experiments/exp8_combined_features/run_italian.py   # Italian
 | Method | Russian | Italian |
 |--------|---------|---------|
 | Embeddings (Gemini) | 61.3% ± 1.3% | 67.1% ± 0.5% |
-| Stylometry (char 3-grams + function words) | 59.2% ± 1.1% | 79.7% ± 1.3% |
-| **Combined** | **70.5% ± 0.9%** | **81.8% ± 1.1%** |
+| Stylometry (char 3-grams + function words) | 59.2% ± 1.2% | 79.7% ± 1.3% |
+| **Combined** | **70.5% ± 1.0%** | **81.8% ± 1.1%** |
 | *Chance* | *3.4%* | *1.9%* |
 
 #### Figures 2–3 — Combined comparison across models
@@ -239,10 +255,15 @@ python experiments/exp2_binary_pairs/run_italian.py         # 1,326 Italian pair
 python experiments/exp2_binary_pairs/analyze_method_differences.py
 ```
 
-**Expected** — mean pairwise accuracy over all pairs is 89.6% (Russian). The
-paper reports the *per-poem* average instead, which
-`analyze_method_differences.py` prints: **93.8%** embeddings and **94.5%**
-stylometry for Russian (96.1% / 98.5% for Italian, see Table 11).
+**Expected** — `exp2_binary_pairs/run.py` reports a mean pairwise accuracy of
+89.6% (Russian). The paper's binary figures come from
+`analyze_method_differences.py`, which prints **93.8%** embeddings and
+**94.5%** stylometry for Russian (`analyze_method_differences_italian.py`:
+96.1% / 98.5% for Italian, see Figure 4).
+The gap is not due to averaging per poem rather than per pair (with balanced
+pairs the two averages are identical): `run.py` and `run_italian.py` fit
+logistic regression on the raw embeddings, while the analysis scripts
+standardize them first (and, for Russian, `run.py` uses unshuffled folds).
 
 #### Table 4 — Effect of text length
 
@@ -311,7 +332,9 @@ python experiments/exp7_waterfall/make_waterfall_figures.py
 ```
 
 Runs immediately from the committed results; re-run the waterfalls above first
-if you want figures from your own run.
+if you want figures from your own run. The Russian panels only match the
+published figures after `run_extended.py` has been re-run, with and without
+`--embedding-model qwen8b` (see the note on out-of-date result files above).
 
 **Expected** — `figures/waterfall_figure.png` (Gemini) and
 `waterfall_figure_qwen.png` (Qwen3-8B), each with a Russian and an Italian panel.

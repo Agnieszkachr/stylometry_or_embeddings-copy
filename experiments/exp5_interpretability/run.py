@@ -151,8 +151,10 @@ def run_multiclass_probe(embeddings, labels, name, class_names, seed=42, min_per
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Run cross-validation with multiclass
-    clf = LogisticRegression(max_iter=2000, C=1.0, random_state=seed, multi_class='multinomial')
+    # Run cross-validation with multiclass. lbfgs fits a multinomial model for
+    # >2 classes by default; the multi_class argument was removed in
+    # scikit-learn 1.8 and passing it there raises TypeError.
+    clf = LogisticRegression(max_iter=2000, C=1.0, random_state=seed)
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=seed)
     scores = cross_val_score(clf, X_scaled, y, cv=cv, scoring='accuracy')
 
@@ -632,8 +634,10 @@ def main():
             level = "NOT ENCODED"
         print(f"  {name}: {level} ({acc:.1%}, {lift:.1f}× chance)")
 
-    # Save results
-    output_file = RESULTS_DIR / "probing_results.json"
+    # Save results. The Gemini run keeps its historical unsuffixed name
+    # (Table 7); other models get a suffix so they cannot overwrite it.
+    model_suffix = "" if args.embedding_model == 'gemini' else f"_{args.embedding_model}"
+    output_file = RESULTS_DIR / f"probing_results{model_suffix}.json"
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
 

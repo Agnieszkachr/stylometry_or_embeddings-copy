@@ -14,9 +14,6 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from scipy import stats
-import warnings
-
-warnings.filterwarnings('ignore')
 
 
 def permutation_test_accuracy(

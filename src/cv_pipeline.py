@@ -168,7 +168,13 @@ def waterfall_cv(
         cumulative_train = None
         cumulative_test = None
 
-        for i, tier_key in enumerate(['tier1', 'tier2', 'tier3', 'tier4']):
+        cumulative_stages = [
+            ('tier1', 'tier1'),
+            ('tier2', 'tier1+2'),
+            ('tier3', 'tier1+2+3'),
+            ('tier4', 'tier1+2+3+4'),
+        ]
+        for tier_key, stage_name in cumulative_stages:
             # Accumulate features
             if cumulative_train is None:
                 cumulative_train = feat_train[tier_key]
@@ -187,10 +193,7 @@ def waterfall_cv(
             clf = clone(classifier)
             clf.fit(resid_train, y_train)
             acc = accuracy_score(y_test, clf.predict(resid_test))
-
-            stage_name = f"tier1+{i+1}" if i > 0 else "tier1"
-            if stage_name in results:
-                results[stage_name].append(acc)
+            results[stage_name].append(acc)
 
         # Tier 5: Non-linear (kernel) on all features
         all_train = feat_train['all']

@@ -44,7 +44,6 @@ import numpy as np
 from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
-from dotenv import load_dotenv
 
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -56,9 +55,15 @@ from clean_dataset import load_clean_dataset
 # Suppress warnings
 warnings.filterwarnings('ignore')
 
-# Load environment variables
+# Load environment variables. Only --regenerate needs them, so python-dotenv
+# is optional: without it, export GEMINI_API_KEY in the shell instead.
 ENV_FILE = Path(__file__).parent.parent.parent / ".env"
-load_dotenv(ENV_FILE)
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    pass
+else:
+    load_dotenv(ENV_FILE)
 
 # Constants
 RESULTS_DIR = Path(__file__).parent / "results"
@@ -410,6 +415,8 @@ def main():
 
     if not GEMINI_API_KEY and not args.dry_run:
         print("\nERROR: --regenerate needs GEMINI_API_KEY in the environment.")
+        print("(A .env file at the repository root is read only if python-dotenv "
+              "is installed.)")
         print("Run without --regenerate to reproduce the published analysis offline,")
         print("or add --dry-run to preview the call count without calling the API.")
         return 1

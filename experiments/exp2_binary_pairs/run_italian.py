@@ -145,12 +145,10 @@ def main():
     print(f"    Min: {np.min(accuracies):.1%}")
     print(f"    Max: {np.max(accuracies):.1%}")
 
-    # Compare with stylometry
-    print(f"\n  Comparison with Stylometry:")
-    print(f"    Embedding mean: {np.mean(accuracies):.1%}")
-    print(f"    Stylometry mean: 98.0% (from exp0)")
-    diff = 0.980 - np.mean(accuracies)
-    print(f"    Difference: {diff:+.1%} (stylometry {'wins' if diff > 0 else 'loses'})")
+    # Stylometry is not computed here (and exp0 is Russian-only), so there is
+    # nothing to compare against in this run.
+    print(f"\n  For the stylometry comparison run analyze_method_differences_italian.py,")
+    print(f"  which scores both methods on the same folds.")
 
     # Save results
     output = {
