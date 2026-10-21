@@ -634,8 +634,10 @@ def main():
             level = "NOT ENCODED"
         print(f"  {name}: {level} ({acc:.1%}, {lift:.1f}× chance)")
 
-    # Save results
-    output_file = RESULTS_DIR / "probing_results.json"
+    # Save results. The Gemini run keeps its historical unsuffixed name
+    # (Table 7); other models get a suffix so they cannot overwrite it.
+    model_suffix = "" if args.embedding_model == 'gemini' else f"_{args.embedding_model}"
+    output_file = RESULTS_DIR / f"probing_results{model_suffix}.json"
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
 

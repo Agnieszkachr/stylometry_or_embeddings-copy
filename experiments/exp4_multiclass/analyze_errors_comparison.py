@@ -549,7 +549,10 @@ def main():
         'error_overlap': overlap
     }
 
-    results_file = RESULTS_DIR / f"error_comparison_{args.language}.json"
+    # The Gemini run keeps its historical unsuffixed name (the published
+    # error overlap); other models get a suffix so they cannot overwrite it.
+    model_suffix = "" if args.embedding_model == 'gemini' else f"_{args.embedding_model}"
+    results_file = RESULTS_DIR / f"error_comparison_{args.language}{model_suffix}.json"
     with open(results_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=2, default=str)
     print(f"\nResults saved to: {results_file}")
