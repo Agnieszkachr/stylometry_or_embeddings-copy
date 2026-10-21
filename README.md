@@ -124,7 +124,7 @@ running anything, with these exceptions:
   and `exp8a_multi_model_comparison/results/multi_model_results*.json` hold
   the older `--stylometry full` run (Russian: Gemini only). The committed
   figures and the tables below are the published values; re-run the
-  corresponding scripts before regenerating Figures 1–3 or 5–6 from these files.
+  corresponding scripts before regenerating Figures 1–3 or 5 from these files.
 
 ### Coverage at a glance
 
