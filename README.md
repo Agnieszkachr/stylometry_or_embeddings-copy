@@ -121,10 +121,12 @@ running anything, with these exceptions:
 - out of date: `exp7_waterfall/results/waterfall_extended_gemini.json` was
   produced without Tier 3 features (its `after_tier3` stage leaves accuracy
   unchanged, R² ≈ 0), so it gives 46.7% after T1–T4 where Table 5 has 40.0%;
+  `exp7_waterfall/results/waterfall_extended_qwen8b.json` gives a final
+  residual of 3.9% where Table 5 and Figure 6 have 3.8%;
   and `exp8a_multi_model_comparison/results/multi_model_results*.json` hold
   the older `--stylometry full` run (Russian: Gemini only). The committed
   figures and the tables below are the published values; re-run the
-  corresponding scripts before regenerating Figures 1–3 or 5 from these files.
+  corresponding scripts before regenerating Figures 1–3 or 5–6 from these files.
 
 ### Coverage at a glance
 
@@ -330,9 +332,9 @@ python experiments/exp7_waterfall/make_waterfall_figures.py
 ```
 
 Runs immediately from the committed results; re-run the waterfalls above first
-if you want figures from your own run. The Russian Gemini panel only matches
-the published figure after `run_extended.py` has been re-run (see the note on
-out-of-date result files above).
+if you want figures from your own run. The Russian panels only match the
+published figures after `run_extended.py` has been re-run, with and without
+`--embedding-model qwen8b` (see the note on out-of-date result files above).
 
 **Expected** — `figures/waterfall_figure.png` (Gemini) and
 `waterfall_figure_qwen.png` (Qwen3-8B), each with a Russian and an Italian panel.
