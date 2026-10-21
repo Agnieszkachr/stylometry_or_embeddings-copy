@@ -84,6 +84,36 @@ def test_failed_force_download_keeps_existing_file(sandbox, monkeypatch):
     assert target.read_bytes() == CONTENT
 
 
+def test_bad_checksum_download_keeps_existing_file(sandbox, monkeypatch):
+    root, _, run = sandbox
+    target = root / "data" / "russian" / "a.bin"
+    target.parent.mkdir(parents=True)
+    target.write_bytes(CONTENT)
+
+    def wrong_urlretrieve(url, dest):
+        with open(dest, "wb") as f:
+            f.write(b"<html>error page</html>")
+
+    monkeypatch.setattr(urllib.request, "urlretrieve", wrong_urlretrieve)
+    assert run("--russian", "--force") == 1
+    assert target.read_bytes() == CONTENT
+    assert list(target.parent.iterdir()) == [target]
+
+
+def test_keyboard_interrupt_leaves_no_partial_file(sandbox, monkeypatch):
+    root, _, run = sandbox
+
+    def interrupted_urlretrieve(url, dest):
+        with open(dest, "wb") as f:
+            f.write(b"trunc")
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(urllib.request, "urlretrieve", interrupted_urlretrieve)
+    with pytest.raises(KeyboardInterrupt):
+        run("--russian")
+    assert list((root / "data" / "russian").iterdir()) == []
+
+
 def test_both_corpus_flags_select_both_corpora(sandbox):
     root, fetched, run = sandbox
     assert run("--russian", "--italian") == 0

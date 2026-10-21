@@ -170,12 +170,14 @@ def compute_md5(filepath: Path) -> str:
     return hash_md5.hexdigest()
 
 
-def download_file(url: str, dest: Path, expected_size_mb: int = None) -> bool:
+def download_file(url: str, dest: Path, expected_size_mb: int = None,
+                  expected_md5: str = None) -> bool:
     """Download a file with progress indicator."""
     dest.parent.mkdir(parents=True, exist_ok=True)
     # Download next to the destination and move it into place only once the
-    # transfer completes, so an interrupted download never leaves a truncated
-    # file that later runs would mistake for an existing one.
+    # transfer completes and the checksum matches, so an interrupted or bad
+    # download never leaves a truncated file that later runs would mistake
+    # for an existing one, nor replaces a good copy during --force.
     tmp = dest.with_name(dest.name + ".part")
 
     try:
@@ -185,6 +187,12 @@ def download_file(url: str, dest: Path, expected_size_mb: int = None) -> bool:
         print(" ... ", end="", flush=True)
 
         urllib.request.urlretrieve(url, tmp)
+        if expected_md5:
+            actual_md5 = compute_md5(tmp)
+            if actual_md5 != expected_md5:
+                print(f"FAILED: MD5 mismatch (expected {expected_md5}, "
+                      f"got {actual_md5})")
+                return False
         os.replace(tmp, dest)
         print("done")
         return True
@@ -346,14 +354,9 @@ def main():
         zenodo_filename = info["zenodo_name"]
         url = get_zenodo_download_url(ZENODO_RECORD_ID, zenodo_filename)
 
-        if not download_file(url, full_path, info["size_mb"]):
+        # download_file() checks the MD5 before moving the file into place
+        if not download_file(url, full_path, info["size_mb"], info.get("md5")):
             failed.append(filepath)
-            continue
-
-        # Verify if MD5 is available
-        if info.get("md5"):
-            if not verify_file(full_path, info["md5"]):
-                failed.append(filepath)
 
     # Summary
     print("\n" + "=" * 60)
